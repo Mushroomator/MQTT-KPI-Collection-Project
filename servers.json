@@ -1,0 +1,13 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "Postgres Datenbank",
+            "Group": "Projektstudium OTH Gruppe 2",
+            "Port": 5432,
+            "Username": "admin",
+            "Host": "postgres-db",
+            "SSLMode": "prefer",
+            "MaintenanceDB": "kpis"
+        }
+    }
+}

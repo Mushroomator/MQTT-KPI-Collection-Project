@@ -1,0 +1,59 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "description": "JSON Schema to check validity of an incoming message containing KPIs",
+    "properties": {
+        "clientId": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 10,
+            "description": "Unique MQTT client ID"
+        },
+        "unixTimestamp": {
+            "type": "number",
+            "multipleOf": 1,
+            "description": "Milliseconds since 'The Epoche'"
+        },
+        "timestamp": {
+            "type": "string",
+            "minLength": 24,
+            "maxLength": 24,
+            "description": "ISO-8601 compliant string representation of current time"
+        },
+        "kpis": {
+            "type": "array",
+            "items": {
+                "description": "List of KPIs to be inserted in database",
+                "minItems": 1,
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 40,
+                        "description": "Name of KPIs that is being measured"
+                    },
+                    "unitId": {
+                        "description": "ID for a unit. See documentation for what which ID means",
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    "value": {
+                        "type": "number",
+                        "multipleOf": 0.01
+                    }
+                }
+            }
+        }
+    },
+    "required": [
+        "clientId",
+        "unixTimestamp",
+        "timestamp",
+        "kpis"
+    ],
+    "additionalProperties": false
+}

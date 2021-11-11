@@ -1,0 +1,55 @@
+# -----------------------------------
+# Grafana Provisioning for "Datasources"
+#
+# Author:      Thomas Pilz
+# Description: This configuration file will be read by Grafana on startup
+#              and Grafana will load the specified datasources so that they
+#              are available in the UI
+# -----------------------------------
+
+# config file version
+apiVersion: 1
+
+# # list of datasources that should be deleted from the database
+#deleteDatasources:
+#   - name: Graphite
+#     orgId: 1
+
+# # list of datasources to insert/update depending
+# # on what's available in the database
+datasources:
+  # <string, required> name of the datasource. Required
+- name: PostgreSQL KPI Database
+  # <string, required> datasource type. Required
+  type: postgres
+  # <string, required> access mode. direct or proxy. Required
+  access: proxy
+  # <int> org id. will default to orgId 1 if not specified
+  orgId: 1
+  # <string> url
+  url: ${POSTGRES_DB_DOMAIN}:${POSTGRES_DB_PORT}
+  # <string> database password, if used
+#  password: "pw" # use secureJsonData instead
+  # <string> database user, if used
+  # use "grafanareader" as this is a unprivileged user
+  user: "grafanareader"
+  # <string> database name, if used
+  database: "kpis"
+  # <bool> mark as default datasource. Max one per org
+  isDefault: true
+  # <map> fields that will be converted to json and stored in json_data
+  jsonData:
+    # no SSL connection
+     sslmode: "disable" # disable/require/verify-ca/verify-full
+     # PostgreSQL Version 14.0
+     postgresVersion: 1400 # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10, 1400=14
+     maxOpenConns: 0 # 0 means unlimited
+     maxIdleConns: 2
+     connMaxLifetime: 14400 
+     timescaledb: false
+  secureJsonData:
+    password: "pw"
+  # <string> json object of data that will be encrypted.
+  version: 1
+  # <bool> allow users to edit datasources from the UI.
+  editable: false

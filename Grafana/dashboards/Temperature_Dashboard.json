@@ -1,0 +1,411 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 1,
+  "iteration": 1636593003456,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 10,
+      "panels": [],
+      "repeat": "device",
+      "title": "Temperature for device $device",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "description": "Ambient temperature as measured for selected device. ",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "displayName": "Temperature in °C",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 55
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "repeat": null,
+      "targets": [
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": false,
+          "rawSql": "SELECT\n  k_timestamp AS \"time\",\n  k_value\nFROM kpis\nWHERE\n  $__timeFilter(k_timestamp) AND\n  k_equipment IN ($device)\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "k_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "kpis",
+          "timeColumn": "k_timestamp",
+          "timeColumnType": "timestamptz",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            },
+            {
+              "datatype": "bpchar",
+              "name": "",
+              "params": [
+                "k_equipment",
+                "IN",
+                "($device)"
+              ],
+              "type": "expression"
+            }
+          ]
+        }
+      ],
+      "title": "Temperature Graph",
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "description": "Current temperature as measured for selected device.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Temperature in °C",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 55
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 5,
+        "x": 12,
+        "y": 1
+      },
+      "id": 5,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "8.2.2",
+      "targets": [
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "k_name",
+          "rawQuery": false,
+          "rawSql": "SELECT\n  k_timestamp AS \"time\",\n  k_name AS metric,\n  k_value\nFROM kpis\nWHERE\n  $__timeFilter(k_timestamp) AND\n  k_equipment IN ($device)\nORDER BY 1,2",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "k_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "kpis",
+          "timeColumn": "k_timestamp",
+          "timeColumnType": "timestamptz",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            },
+            {
+              "datatype": "bpchar",
+              "name": "",
+              "params": [
+                "k_equipment",
+                "IN",
+                "($device)"
+              ],
+              "type": "expression"
+            }
+          ]
+        }
+      ],
+      "title": "Current Temperature",
+      "type": "gauge"
+    },
+    {
+      "datasource": null,
+      "description": "All temperatures as measured for selected device.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 55
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Timestamp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "k_value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Temperature in °C"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 7,
+        "x": 17,
+        "y": 1
+      },
+      "id": 12,
+      "options": {
+        "showHeader": true
+      },
+      "pluginVersion": "8.2.2",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": false,
+          "rawSql": "SELECT\n  k_timestamp AS \"time\",\n  k_value\nFROM kpis\nWHERE\n  $__timeFilter(k_timestamp) AND\n  k_equipment IN ($device)\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "k_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "kpis",
+          "timeColumn": "k_timestamp",
+          "timeColumnType": "timestamptz",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            },
+            {
+              "datatype": "bpchar",
+              "name": "",
+              "params": [
+                "k_equipment",
+                "IN",
+                "($device)"
+              ],
+              "type": "expression"
+            }
+          ]
+        }
+      ],
+      "title": "Temperature Table",
+      "type": "table"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 31,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": "All",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": null,
+        "definition": "SELECT DISTINCT(k_equipment) FROM kpis;",
+        "description": "Device that sends temperature data",
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Device",
+        "multi": true,
+        "name": "device",
+        "options": [],
+        "query": "SELECT DISTINCT(k_equipment) FROM kpis;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Temperature Dashboard",
+  "uid": "KVskIwK7z",
+  "version": 3
+}

@@ -1,0 +1,122 @@
+version: '3.1'
+
+services:
+  
+  db:
+    image: postgres:14.0-alpine
+    container_name: ${POSTGRES_DB_NAME}
+    restart: always
+    ports:
+      - 5432:5432
+    networks:
+      - mqtt-net
+    volumes:
+      # mount postgres config
+      - "./PostgreSQL/postgresql.conf:/etc/postgresql/postgresql.conf"
+      # mount initialization script
+      - "./PostgreSQL/sql-scripts:/docker-entrypoint-initdb.d"
+      # create/ mount data volume to persist data even when containers are not running
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: pw
+      POSTGRES_USER: admin
+      POSTGRES_DB: kpis
+
+  pgadmin:
+    image: dpage/pgadmin4:6.1
+    container_name: pgadmin
+    restart: always
+    ports:
+      - 80:80
+    networks:
+      - mqtt-net
+    volumes:
+    # load server configuration
+      - "./servers.json:/pgadmin4/servers.json"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@test.de
+      PGADMIN_DEFAULT_PASSWORD: pw
+
+  grafana:
+    image: grafana/grafana:8.2.2
+    container_name: grafana
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - mqtt-net
+    volumes:
+    # mount grafana data volume 
+    - grafana-data:/var/lib/grafana
+    # mount grafana logs volume
+    - grafana-logs:/var/log/grafana
+    # bind mount: datasources for provisioning
+    - ./Grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    # bind mount: dashboards for provisioning
+    - ./Grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    # bind mount: actual dashboards set up by provisioning
+    - ./Grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      POSTGRES_DB_DOMAIN: ${POSTGRES_DB_NAME}
+      POSTGRES_DB_PORT: ${POSTGRES_DB_PORT}
+      POSTGRES_USER: dbcon
+      POSTGRES_DB: kpis
+      POSTGRES_PW: pw
+  
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: ${MQTT_MSG_BROKER_NAME}
+    restart: always
+    networks:
+      - mqtt-net
+    ports:
+      - 1883:1883
+    volumes:
+      - "./mosquitto.conf://mosquitto/config/mosquitto.conf"
+    
+
+  temp-publisher1:
+    image: thomaspilz/mqtt-temp-publisher
+    container_name: temp-pub01
+    restart: always
+    networks:
+      - mqtt-net
+    environment:
+      MQTT_CLIENT_ID: temp-pub01
+      MQTT_MSG_BROKER_URL: tcp://${MQTT_MSG_BROKER_NAME}:1883
+      MQTT_TOPIC: kpis/temp
+      INITIAL_TASK_DELAY: 10000
+
+  temp-publisher2:
+    image: thomaspilz/mqtt-temp-publisher
+    container_name: temp-pub02
+    restart: always
+    networks:
+      - mqtt-net
+    environment:
+      MQTT_CLIENT_ID: temp-pub02
+      MQTT_MSG_BROKER_URL: tcp://${MQTT_MSG_BROKER_NAME}:1883
+      MQTT_TOPIC: kpis/temp
+      INITIAL_TASK_DELAY: 10000
+    
+  database-connector:
+    image: thomaspilz/mqtt-database-connector
+    container_name: db-connector
+    restart: always
+    networks:
+      - mqtt-net
+    environment:
+      POSTGRES_DB_DOMAIN: ${POSTGRES_DB_NAME}
+      POSTGRES_USER: dbcon
+      POSTGRES_DB: kpis
+      POSTGRES_PW: pw
+      MQTT_CLIENT_ID: database-connector
+      MQTT_MSG_BROKER_URL: tcp://${MQTT_MSG_BROKER_NAME}:1883
+
+networks:
+  mqtt-net:
+
+volumes:
+  db-data:
+  grafana-data:
+  grafana-logs:

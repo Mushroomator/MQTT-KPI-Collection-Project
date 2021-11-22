@@ -27,8 +27,7 @@ CREATE TABLE IF NOT EXISTS images (
 	i_id serial PRIMARY KEY NOT NULL,
     i_equipment char(10) NOT NULL,
 	i_timestamp timestamptz NOT NULL,
-	i_name VARCHAR(255) NOT NULL, 
-	i_img bytea NOT NULL
+	i_url varchar(255) NOT NULL
 );
 
 -- insert data for units

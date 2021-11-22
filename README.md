@@ -15,6 +15,9 @@ Simple application stack showcasing how data could be collected (from sensors), 
     - [Grafana](#grafana)
     - [Mosquitto MQTT message broker](#mosquitto-mqtt-message-broker)
     - [MQTT-Temp-Publisher](#mqtt-temp-publisher)
+    - [MinIO](#minio)
+    - [Outlier Detector](#outlier-detector)
+    - [Outlier Detection Webapp](#outlier-detection-webapp)
     - [MQTT-Net](#mqtt-net)
   - [Associated repos](#associated-repos)
   - [License](#license)
@@ -107,6 +110,26 @@ A simple Java application which generates mock temperature data and sends it to 
 
 > Further information can be found in the repository for the [MQTT-Temp-Publisher](https://github.com/Mushroomator/MQTT-Temp-Publisher). 
 
+### MinIO
+[MinIO](https://min.io/) is an S3 compliant object storage which is used here to store images made by the Raspberry Pi camera and images processed/ created by the AI models. Additionially it will serve those images via HTTP. The MinIO API is made available on port `9000` and the management GUI is served on port `9001`. 
+
+You can login to the GUI (and private buckets) using the following credentials: 
+| Username/ Access-Key | Password/ Secret-Key |
+| -------------------- | -------------------- |
+| admin                | alongerpw            |
+
+On first startup of the container two buckets will be created:
+| Bucket        | Policy   | Purpose                                                     |
+| ------------- | -------- | ----------------------------------------------------------- |
+| model-images  | download | Store the images from AI model downscaled and reconstructed |
+| camera-images | download | Store images made by the RaspberryPi camera                 |
+
+### Outlier Detector
+Python program which processes a picture taken by the RaspberryPi camera, runs it through an AI model (= auto encoder) and the determines whether the image is an *outlier* (= different from the images the model has been trained with) or not. Once the model has calculated a result the input image as well as the reconstructed image are uploaded to [Min.io](#minio) and the URLs/ paths to those images as well as other information such as *quadratic error* and *timestamp* will be sent to the [Outlier Detection Webapp](#outlier-detection-webapp) so it can visualize the results.
+
+### Outlier Detection Webapp
+Webapp to show and monitor outliers detected by [Outlier-Detector](#outlier-detector). The backend runs a WebSocket server listening for results from the [Outlier-Detector](#outlier-detector) on port `5000`.
+
 ### MQTT-Net
 Docker user-defined network which all of above services are connected to. This network is separate from you host network and allows i. a. to use domain names names instead of IP addresses making use of docker's service discovery.  
 
@@ -115,6 +138,8 @@ Here are the links to all the associated repositories:
 - [MQTT Temp Publisher](https://github.com/Mushroomator/MQTT-Temp-Publisher)
 - [MQTT KPI Publisher](https://github.com/Mushroomator/MQTT-KPI-Publisher)
 - [MQTT Database Connector](https://github.com/Mushroomator/MQTT-Database-Connector)
+- [Outlier Detection Webapp](https://github.com/Mushroomator/Outlier-Detection-Webapp)
+- [Outlier Detector](#) TODO
 
 ## License
 Copyright 2021 Thomas Pilz

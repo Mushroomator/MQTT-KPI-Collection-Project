@@ -17,6 +17,12 @@ services:
       - "./PostgreSQL/sql-scripts:/docker-entrypoint-initdb.d"
       # create/ mount data volume to persist data even when containers are not running
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "5432"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
     environment:
       POSTGRES_PASSWORD: pw
       POSTGRES_USER: admin
@@ -32,7 +38,13 @@ services:
       - mqtt-net
     volumes:
     # load server configuration
-      - "./servers.json:/pgadmin4/servers.json"
+      - "./pgAdmin/servers.json:/pgadmin4/servers.json"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider" ,"localhost:80"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
     environment:
       PGADMIN_DEFAULT_EMAIL: test@test.de
       PGADMIN_DEFAULT_PASSWORD: pw
@@ -56,6 +68,12 @@ services:
     - ./Grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     # bind mount: actual dashboards set up by provisioning
     - ./Grafana/dashboards:/var/lib/grafana/dashboards
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider" ,"localhost:3000"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
     environment:
       POSTGRES_DB_DOMAIN: ${POSTGRES_DB_NAME}
       POSTGRES_DB_PORT: ${POSTGRES_DB_PORT}
@@ -72,7 +90,7 @@ services:
     ports:
       - 1883:1883
     volumes:
-      - "./mosquitto.conf://mosquitto/config/mosquitto.conf"
+      - "./Mosquitto/mosquitto.conf://mosquitto/config/mosquitto.conf"
     
 
   temp-publisher1:
@@ -113,10 +131,75 @@ services:
       MQTT_CLIENT_ID: database-connector
       MQTT_MSG_BROKER_URL: tcp://${MQTT_MSG_BROKER_NAME}:1883
 
+  minio:
+    image: bitnami/minio:2021-debian-10
+    container_name: ${MINIO_NAME}
+    restart: always
+    ports:
+    # port for api server
+      - 9000:9000
+    # port for web gui
+      - 9001:9001
+    networks:
+      - mqtt-net
+    volumes:
+      # create/ mount data volume to persist data even when containers are not running
+      - object-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    environment:
+      MINIO_ACCESS_KEY: "admin"
+      MINIO_SECRET_KEY: "alongerpw"
+      MINIO_DEFAULT_BUCKETS: "model-images:download,camera-images:download"
+
+  outlier-detector:
+    image: thomaspilz/outlier-detector
+    container_name: outlier-detector
+    restart: always
+    networks:
+      - mqtt-net
+    volumes:
+    # bind mount: mount data directory to /data inside container
+    - ./OutlierDetector/data:/data
+    depends_on:
+      - outlier-detection-webapp
+    environment:
+      WEBSOCKET_DOMAIN: ${OUTLIER_DETECTION_WEBAPP_NAME}
+      WEBSOCKET_PORT: 5000
+      WEBSOCKET_EVENT: "/outlier-detection/result"
+      OBJ_STORE_DOMAIN: ${MINIO_NAME}
+      OBJ_STORE_API_PORT: 9000
+      OBJ_STORE_BUCKET: "model-images"
+      PATH_TO_TEST_DATA_DIR: "/data/PS_test_mix/*"
+      PATH_TO_AI_MODEL: "/data/Autoencoder_weights_new.h5"
+
+  outlier-detection-webapp:
+    image: thomaspilz/outlier-detection-webapp
+    container_name: ${OUTLIER_DETECTION_WEBAPP_NAME}
+    restart: always
+    networks:
+      - mqtt-net
+    ports:
+      - 5000:5000
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider" ,"localhost:5000"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+    environment:
+      HOSTNAME: "0.0.0.0"
+      # start server on port 5000
+      PORT: 5000
+
 networks:
   mqtt-net:
 
 volumes:
+  object-data:
   db-data:
   grafana-data:
   grafana-logs:
